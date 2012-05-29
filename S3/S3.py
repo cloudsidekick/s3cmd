@@ -72,6 +72,7 @@ class S3Request(object):
             del(self.headers["date"])
         self.headers["x-amz-date"] = time.strftime("%a, %d %b %Y %H:%M:%S +0000", time.gmtime())
 
+
     def format_param_str(self):
         """
         Format URL parameters from self.params and returns
@@ -95,8 +96,8 @@ class S3Request(object):
         for header in self.headers.keys():
             if header.startswith("x-amz-"):
                 h += header+":"+str(self.headers[header])+"\n"
-        if self.resource['bucket']:
-            h += "/" + self.resource['bucket']
+        #if self.resource['bucket']:
+        #    h += "/" + self.resource['bucket']
         h += self.resource['uri']
         debug("SignHeaders: " + repr(h))
         signature = sign_string(h)
@@ -183,6 +184,8 @@ class S3(object):
             uri = "/%s%s" % (resource['bucket'], resource['uri'])
         else:
             uri = resource['uri']
+        if self.config.service_path:
+            uri = self.config.service_path + resource['uri']
         if self.config.proxy_host != "":
             uri = "http://%s%s" % (self.get_hostname(resource['bucket']), uri)
         debug('format_uri(): ' + uri)
@@ -554,9 +557,11 @@ class S3(object):
             object = uri.has_object() and uri.object() or None
 
         if bucket:
-            resource['bucket'] = str(bucket)
+            #resource['bucket'] = str(bucket)
+            resource['uri'] = "/" + self.urlencode_string(bucket)
             if object:
-                resource['uri'] = "/" + self.urlencode_string(object)
+                #resource['uri'] = "/" + self.urlencode_string(object)
+                resource['uri'] = resource['uri'] + "/" + self.urlencode_string(object)
         if extra:
             resource['uri'] += extra
 
